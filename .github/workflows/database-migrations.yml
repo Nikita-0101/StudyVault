@@ -40,9 +40,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Resolve failed initial migration
-        run: npx prisma migrate resolve --rolled-back 0_init
-
       - name: Apply Prisma migrations
         run: npx prisma migrate deploy
 
