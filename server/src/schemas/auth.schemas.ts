@@ -19,4 +19,18 @@ export const registerSchema = z.object({
     .max(128, 'Пароль не должен быть длиннее 128 символов'),
 });
 
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email('Некорректный email'),
+
+  password: z
+    .string()
+    .min(1, 'Введите пароль')
+    .max(128, 'Пароль не должен быть длиннее 128 символов'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
