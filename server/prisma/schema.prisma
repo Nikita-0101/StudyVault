@@ -58,10 +58,10 @@ model PersonalMaterial {
   content   String?
   url       String?
 
-  fileName String? @map("file_name")
-  fileUrl  String? @map("file_url")
-  mimeType String? @map("mime_type")
-  fileSize Int?    @map("file_size")
+  fileName    String? @map("file_name")
+  storagePath String? @map("storage_path")
+  mimeType    String? @map("mime_type")
+  fileSize    Int?    @map("file_size")
 
   subject PersonalSubject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 

@@ -6,6 +6,10 @@ import type {
   UpdatePersonalSubjectInput,
 } from '../schemas/personal-subject.schemas.js';
 
+import {
+  deleteFilesFromStorage,
+} from './storage.service.js';
+
 export const createPersonalSubject = async (
   ownerId: string,
   input: CreatePersonalSubjectInput,
@@ -37,12 +41,13 @@ export const getPersonalSubjectById = async (
   ownerId: string,
   subjectId: string,
 ) => {
-  const subject = await prisma.personalSubject.findFirst({
-    where: {
-      id: subjectId,
-      ownerId,
-    },
-  });
+  const subject =
+    await prisma.personalSubject.findFirst({
+      where: {
+        id: subjectId,
+        ownerId,
+      },
+    });
 
   if (!subject) {
     throw new AppError(
@@ -94,11 +99,58 @@ export const deletePersonalSubject = async (
   ownerId: string,
   subjectId: string,
 ): Promise<void> => {
+  /*
+   * Сначала проверяем, что предмет существует
+   * и принадлежит текущему пользователю.
+   */
   await getPersonalSubjectById(
     ownerId,
     subjectId,
   );
 
+  /*
+   * Получаем пути всех файловых материалов
+   * этого предмета.
+   */
+  const fileMaterials =
+    await prisma.personalMaterial.findMany({
+      where: {
+        subjectId,
+        type: 'FILE',
+        storagePath: {
+          not: null,
+        },
+      },
+      select: {
+        storagePath: true,
+      },
+    });
+
+  const storagePaths = fileMaterials
+    .map((material) => material.storagePath)
+    .filter(
+      (storagePath): storagePath is string =>
+        storagePath !== null,
+    );
+
+  /*
+   * Сначала удаляем настоящие файлы
+   * из Supabase Storage.
+   *
+   * Если Storage вернёт ошибку,
+   * предмет из PostgreSQL не удалится.
+   */
+  await deleteFilesFromStorage(
+    storagePaths,
+  );
+
+  /*
+   * Затем удаляем предмет.
+   *
+   * Благодаря onDelete: Cascade
+   * Prisma/PostgreSQL автоматически удалит
+   * все связанные строки PersonalMaterial.
+   */
   await prisma.personalSubject.delete({
     where: {
       id: subjectId,
