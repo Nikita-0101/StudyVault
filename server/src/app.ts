@@ -8,6 +8,7 @@ import { notFoundHandler } from './middlewares/not-found.middleware.js';
 import { authRouter } from './routes/auth.routes.js';
 import { healthRouter } from './routes/health.routes.js';
 import { personalSubjectRouter } from './routes/personal-subject.routes.js';
+import { personalMaterialRouter } from './routes/personal-material.routes.js';
 
 export const app = express();
 
@@ -43,6 +44,11 @@ app.use('/api/auth', authRouter);
 app.use(
   '/api/personal-subjects',
   personalSubjectRouter,
+);
+
+app.use(
+  '/api/personal-subjects/:subjectId/materials',
+  personalMaterialRouter,
 );
 
 app.use(notFoundHandler);
