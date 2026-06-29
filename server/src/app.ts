@@ -3,14 +3,14 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import {
-  errorHandler,
-  notFoundHandler,
-} from './middlewares/error.middleware.js';
-
+import { errorHandler } from './middlewares/error.middleware.js';
+import { notFoundHandler } from './middlewares/not-found.middleware.js';
+import { authRouter } from './routes/auth.routes.js';
 import { healthRouter } from './routes/health.routes.js';
 
 export const app = express();
+
+app.disable('x-powered-by');
 
 app.use(helmet());
 
@@ -21,12 +21,23 @@ app.use(
   }),
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(
+  express.json({
+    limit: '1mb',
+  }),
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: '1mb',
+  }),
+);
 
 app.use(morgan('dev'));
 
 app.use('/api/health', healthRouter);
+app.use('/api/auth', authRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
