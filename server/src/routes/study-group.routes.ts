@@ -2,31 +2,49 @@ import { Router } from 'express';
 
 import {
   createGroup,
+  deleteGroup,
   getGroupById,
   getGroups,
   joinGroup,
-  updateGroup,
   leaveGroup,
   removeGroupMember,
-  deleteGroup,
+  updateGroup,
 } from '../controllers/study-group.controller.js';
+
+import {
+  updateGroupMemberRole,
+} from '../controllers/study-group-member-role.controller.js';
 
 import {
   authenticate,
 } from '../middlewares/auth.middleware.js';
 
+import {
+  studyGroupTopicRouter,
+} from './study-group-topic.routes.js';
+
 export const studyGroupRouter =
   Router();
 
+/*
+ * Все маршруты учебных групп
+ * требуют авторизации через JWT.
+ *
+ * Middleware также защищает
+ * вложенные маршруты тем.
+ */
 studyGroupRouter.use(
   authenticate,
 );
 
 /*
- * Специальный маршрут ставим раньше /:groupId.
+ * POST /api/study-groups/join
  *
- * Иначе Express может воспринять слово join
- * как идентификатор группы.
+ * Статический маршрут должен находиться
+ * раньше маршрутов с параметром /:groupId.
+ *
+ * Иначе Express может воспринять
+ * слово join как идентификатор группы.
  */
 studyGroupRouter.post(
   '/join',
@@ -35,6 +53,8 @@ studyGroupRouter.post(
 
 /*
  * POST /api/study-groups
+ *
+ * Создание учебной группы.
  */
 studyGroupRouter.post(
   '/',
@@ -43,6 +63,9 @@ studyGroupRouter.post(
 
 /*
  * GET /api/study-groups
+ *
+ * Получение всех учебных групп,
+ * в которых состоит текущий пользователь.
  */
 studyGroupRouter.get(
   '/',
@@ -50,7 +73,34 @@ studyGroupRouter.get(
 );
 
 /*
+ * Вложенные маршруты тем:
+ *
+ * POST
+ * /api/study-groups/:groupId/topics
+ *
+ * GET
+ * /api/study-groups/:groupId/topics
+ *
+ * GET
+ * /api/study-groups/:groupId/topics/:topicId
+ *
+ * PATCH
+ * /api/study-groups/:groupId/topics/:topicId
+ *
+ * DELETE
+ * /api/study-groups/:groupId/topics/:topicId
+ */
+studyGroupRouter.use(
+  '/:groupId/topics',
+  studyGroupTopicRouter,
+);
+
+/*
  * POST /api/study-groups/:groupId/leave
+ *
+ * Обычный участник выходит из группы.
+ * Владелец не может выйти,
+ * пока не передаст владение.
  */
 studyGroupRouter.post(
   '/:groupId/leave',
@@ -58,9 +108,26 @@ studyGroupRouter.post(
 );
 
 /*
- * DELETE /api/study-groups/:groupId/members/:userId
+ * PATCH
+ * /api/study-groups/:groupId/members/:userId/role
  *
- * Только владелец группы.
+ * Только владелец группы может:
+ *
+ * MEMBER -> EDITOR
+ * EDITOR -> MEMBER
+ */
+studyGroupRouter.patch(
+  '/:groupId/members/:userId/role',
+  updateGroupMemberRole,
+);
+
+/*
+ * DELETE
+ * /api/study-groups/:groupId/members/:userId
+ *
+ * Только владелец может удалить
+ * обычного участника или редактора
+ * из учебной группы.
  */
 studyGroupRouter.delete(
   '/:groupId/members/:userId',
@@ -70,8 +137,11 @@ studyGroupRouter.delete(
 /*
  * GET /api/study-groups/:groupId
  *
+ * Получение одной учебной группы
+ * вместе со списком участников.
+ *
  * Динамический маршрут располагается
- * после статических маршрутов.
+ * после более конкретных маршрутов.
  */
 studyGroupRouter.get(
   '/:groupId',
@@ -81,7 +151,8 @@ studyGroupRouter.get(
 /*
  * PATCH /api/study-groups/:groupId
  *
- * Только владелец группы.
+ * Изменение названия или описания группы.
+ * Доступно только владельцу.
  */
 studyGroupRouter.patch(
   '/:groupId',
@@ -91,7 +162,7 @@ studyGroupRouter.patch(
 /*
  * DELETE /api/study-groups/:groupId
  *
- * Полностью удаляет группу.
+ * Полное удаление учебной группы.
  * Доступно только владельцу.
  */
 studyGroupRouter.delete(
