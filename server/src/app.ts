@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-
+import { studyGroupRouter, } from './routes/study-group.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { notFoundHandler } from './middlewares/not-found.middleware.js';
 import { authRouter } from './routes/auth.routes.js';
@@ -49,6 +49,11 @@ app.use(
 app.use(
   '/api/personal-subjects/:subjectId/materials',
   personalMaterialRouter,
+);
+
+app.use(
+  '/api/study-groups',
+  studyGroupRouter,
 );
 
 app.use(notFoundHandler);
