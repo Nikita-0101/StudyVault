@@ -1,6 +1,4 @@
-import {
-  Router,
-} from 'express';
+import { Router } from 'express';
 
 import {
   createGroupTopic,
@@ -10,11 +8,13 @@ import {
   updateGroupTopic,
 } from '../controllers/study-group-topic.controller.js';
 
+import {
+  studyGroupMaterialRouter,
+} from './study-group-material.routes.js';
+
 /*
- * mergeParams нужен, чтобы дочерний router
- * получил groupId из родительского маршрута:
- *
- * /:groupId/topics
+ * mergeParams нужен для получения
+ * groupId из родительского router.
  */
 export const studyGroupTopicRouter =
   Router({
@@ -22,7 +22,8 @@ export const studyGroupTopicRouter =
   });
 
 /*
- * POST /api/study-groups/:groupId/topics
+ * POST
+ * /api/study-groups/:groupId/topics
  */
 studyGroupTopicRouter.post(
   '/',
@@ -30,7 +31,8 @@ studyGroupTopicRouter.post(
 );
 
 /*
- * GET /api/study-groups/:groupId/topics
+ * GET
+ * /api/study-groups/:groupId/topics
  */
 studyGroupTopicRouter.get(
   '/',
@@ -38,7 +40,33 @@ studyGroupTopicRouter.get(
 );
 
 /*
- * GET /api/study-groups/:groupId/topics/:topicId
+ * Вложенный router материалов.
+ *
+ * Итоговые маршруты:
+ *
+ * POST
+ * /api/study-groups/:groupId/topics/:topicId/materials
+ *
+ * GET
+ * /api/study-groups/:groupId/topics/:topicId/materials
+ *
+ * GET
+ * /api/study-groups/:groupId/topics/:topicId/materials/:materialId
+ *
+ * PATCH
+ * /api/study-groups/:groupId/topics/:topicId/materials/:materialId
+ *
+ * DELETE
+ * /api/study-groups/:groupId/topics/:topicId/materials/:materialId
+ */
+studyGroupTopicRouter.use(
+  '/:topicId/materials',
+  studyGroupMaterialRouter,
+);
+
+/*
+ * GET
+ * /api/study-groups/:groupId/topics/:topicId
  */
 studyGroupTopicRouter.get(
   '/:topicId',
@@ -46,7 +74,8 @@ studyGroupTopicRouter.get(
 );
 
 /*
- * PATCH /api/study-groups/:groupId/topics/:topicId
+ * PATCH
+ * /api/study-groups/:groupId/topics/:topicId
  */
 studyGroupTopicRouter.patch(
   '/:topicId',
@@ -54,7 +83,8 @@ studyGroupTopicRouter.patch(
 );
 
 /*
- * DELETE /api/study-groups/:groupId/topics/:topicId
+ * DELETE
+ * /api/study-groups/:groupId/topics/:topicId
  */
 studyGroupTopicRouter.delete(
   '/:topicId',
