@@ -34,9 +34,11 @@ model User {
   ownedStudyGroups      StudyGroup[]       @relation("StudyGroupOwner")
   studyGroupMemberships StudyGroupMember[]
 
-  createdStudyGroupTopics StudyGroupTopic[] @relation("StudyGroupTopicCreator")
-  createdAt               DateTime          @default(now()) @map("created_at")
-  updatedAt               DateTime          @updatedAt @map("updated_at")
+  createdStudyGroupTopics    StudyGroupTopic[]    @relation("StudyGroupTopicCreator")
+  createdStudyGroupMaterials StudyGroupMaterial[] @relation("StudyGroupMaterialCreator")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -125,8 +127,9 @@ model StudyGroupTopic {
   color       String?
   position    Int     @default(0)
 
-  group     StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  createdBy User?      @relation("StudyGroupTopicCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  group     StudyGroup           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy User?                @relation("StudyGroupTopicCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  materials StudyGroupMaterial[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -134,4 +137,30 @@ model StudyGroupTopic {
   @@index([groupId, position])
   @@index([createdById])
   @@map("study_group_topics")
+}
+
+model StudyGroupMaterial {
+  id          String       @id @default(uuid()) @db.Uuid
+  topicId     String       @map("topic_id") @db.Uuid
+  createdById String?      @map("created_by_id") @db.Uuid
+  type        MaterialType
+  title       String
+  content     String?
+  url         String?
+
+  fileName    String? @map("file_name")
+  storagePath String? @map("storage_path")
+  mimeType    String? @map("mime_type")
+  fileSize    Int?    @map("file_size")
+
+  topic     StudyGroupTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdBy User?           @relation("StudyGroupMaterialCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([topicId, createdAt])
+  @@index([createdById])
+  @@index([type])
+  @@map("study_group_materials")
 }
